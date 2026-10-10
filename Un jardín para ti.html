@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Un jardín para ti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,400&family=Figtree:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e4eee3;
+    --ink: #24382c;
+    --muted: #5d7567;
+    --sky-top: #cfe6ef;
+    --sky-bottom: #eef6e9;
+    --ground: #5f9a67;
+    --ground-deep: #4a8254;
+    --stem: #4f8a5b;
+    --btn: rgba(36, 56, 44, 0.08);
+    --btn-on: #24382c;
+    --btn-on-text: #f1f7f1;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #13201a; --ink: #e8f2ea; --muted: #94ab9c;
+      --sky-top: #1c2e3d; --sky-bottom: #243a33;
+      --ground: #2f6a45; --ground-deep: #265939; --stem: #5fa56d;
+      --btn: rgba(232, 242, 234, 0.1); --btn-on: #e8f2ea; --btn-on-text: #13201a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #13201a; --ink: #e8f2ea; --muted: #94ab9c;
+    --sky-top: #1c2e3d; --sky-bottom: #243a33;
+    --ground: #2f6a45; --ground-deep: #265939; --stem: #5fa56d;
+    --btn: rgba(232, 242, 234, 0.1); --btn-on: #e8f2ea; --btn-on-text: #13201a;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100%; background: var(--bg); color: var(--ink);
+    font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 24px 18px 36px; }
+  h1 {
+    font-family: "Newsreader", Georgia, "Times New Roman", serif; font-weight: 400;
+    font-size: clamp(2rem, 8.5vw, 2.7rem); line-height: 1.05; margin: 4px 0 6px;
+  }
+  .hint { margin: 0 0 14px; color: var(--muted); line-height: 1.45; min-height: 1.45em; }
+
+  .stage {
+    position: relative; width: 100%; height: min(60vh, 460px); overflow: hidden;
+    border-radius: 22px; background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+    touch-action: manipulation; cursor: crosshair; user-select: none; -webkit-user-select: none;
+  }
+  .ground {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 64px; z-index: 5; pointer-events: none;
+    background: linear-gradient(180deg, var(--ground), var(--ground-deep));
+    border-top-left-radius: 50% 14px; border-top-right-radius: 50% 14px;
+  }
+  .fl { position: absolute; z-index: 2; pointer-events: none; overflow: visible; transform-origin: 50% 100%; }
+  .fl .head { pointer-events: auto; cursor: pointer; }
+  .stem { fill: none; stroke: var(--stem); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: grow .9s ease-out forwards; }
+  .head { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: bloom .7s cubic-bezier(.2,.9,.3,1.25) forwards; animation-delay: .75s; }
+  .fl.sway { animation: sway 1.3s ease-in-out; }
+  .stage.wind .fl { animation: sway 1.8s ease-in-out; animation-delay: var(--w, 0s); }
+  @keyframes grow { to { stroke-dashoffset: 0; } }
+  @keyframes bloom { to { transform: scale(1); } }
+  @keyframes sway { 0%,100% { transform: rotate(0); } 25% { transform: rotate(7deg); } 55% { transform: rotate(-6deg); } 80% { transform: rotate(3deg); } }
+
+  .tray { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .tray button, .tools button {
+    font: inherit; font-size: .95rem; color: var(--ink); background: var(--btn);
+    border: 2px solid transparent; border-radius: 999px; padding: 6px 14px 6px 8px;
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .tray button[aria-pressed="true"] { background: var(--btn-on); color: var(--btn-on-text); }
+  .tray button:focus-visible, .tools button:focus-visible { outline: 3px solid var(--stem); outline-offset: 2px; }
+  .tray svg { width: 30px; height: 30px; flex: none; }
+  .tools { display: flex; gap: 8px; margin-top: 10px; }
+  .tools button { padding: 7px 16px; }
+
+  .msg {
+    font-family: "Newsreader", Georgia, serif; font-size: clamp(1.35rem, 5.4vw, 1.65rem);
+    line-height: 1.35; margin: 24px 0 0; opacity: 0; transform: translateY(6px);
+    transition: opacity 1.4s ease, transform 1.4s ease;
+  }
+  .msg.show { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stem { animation: none; stroke-dashoffset: 0; }
+    .head { animation: none; transform: none; }
+    .fl.sway, .stage.wind .fl { animation: none; }
+    .msg { transition: none; transform: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Un jardín para ti</h1>
+  <p class="hint" id="hint">Toca el cielo para plantar una flor donde quieras.</p>
+
+  <div class="stage" id="stage" aria-label="Jardín: toca para plantar flores">
+    <div class="ground"></div>
+  </div>
+
+  <div class="tray" id="tray" role="group" aria-label="Tipo de flor"></div>
+  <div class="tools">
+    <button type="button" id="wind">Soplar</button>
+    <button type="button" id="clear">Empezar de nuevo</button>
+  </div>
+
+  <p class="msg" id="msg">Unas flores, sin ningún motivo en especial. Solo para que tu día sea un poquito más bonito.</p>
+</main>
+
+<script>
+  var GROUND = 64;
+  var types = {
+    daisy:  { name: 'Margarita', n: 12, rx: 7,  ry: 22, cr: 13, colors: ['#ffffff'], centers: ['#ffc531'] },
+    tulip:  { name: 'Tulipán',   colors: ['#ff9d76', '#ffd166', '#c9a7f5'] },
+    violet: { name: 'Violeta',   n: 5,  rx: 14, ry: 17, cr: 7,  colors: ['#b79cf0', '#8fb8f5'], centers: ['#fff3b0'] },
+    sun:    { name: 'Girasol',   n: 15, rx: 6,  ry: 20, cr: 16, colors: ['#ffcc2f'], centers: ['#6b4423'] }
+  };
+  var current = 'daisy';
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  function headMarkup(key, color, center) {
+    var t = types[key], s = '';
+    if (key === 'tulip') {
+      return '<path d="M-18 -8 C-20 22 -8 34 0 34 C8 34 20 22 18 -8 L9 -24 L0 -6 L-9 -24 Z" fill="' + color + '"/>' +
+             '<path d="M-7 -4 C-8 18 -3 30 0 32 C3 30 8 18 7 -4 L0 -16 Z" fill="rgba(255,255,255,.35)"/>';
+    }
+    for (var i = 0; i < t.n; i++) {
+      s += '<ellipse cx="0" cy="' + (-(t.ry + t.cr * 0.5)) + '" rx="' + t.rx + '" ry="' + t.ry +
+           '" fill="' + color + '" stroke="rgba(0,0,0,0.08)" stroke-width="1" transform="rotate(' + ((360 / t.n) * i) + ')"/>';
+    }
+    return s + '<circle r="' + t.cr + '" fill="' + center + '"/>';
+  }
+
+  // botones de selección
+  var tray = document.getElementById('tray');
+  Object.keys(types).forEach(function (key) {
+    var t = types[key];
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', key === current ? 'true' : 'false');
+    b.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><g transform="translate(60 ' + (key === 'tulip' ? 56 : 60) + ') scale(.85)">' +
+      headMarkup(key, t.colors[0], t.centers ? t.centers[0] : '') + '</g></svg>' + t.name;
+    b.addEventListener('click', function () {
+      current = key;
+      tray.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+      b.setAttribute('aria-pressed', 'true');
+    });
+    tray.appendChild(b);
+  });
+
+  var stage = document.getElementById('stage');
+  var hint = document.getElementById('hint');
+  var msg = document.getElementById('msg');
+  var planted = 0;
+  var MAX = 40;
+
+  function plant(x, y, key) {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    var baseY = h - GROUND + 16;
+    x = Math.max(44, Math.min(w - 44, x));
+    y = Math.max(62, Math.min(baseY - 52, y));
+    var H = (baseY - y) + 60;
+    var t = types[key];
+    var color = pick(t.colors);
+    var center = t.centers ? pick(t.centers) : '';
+    var sc = (0.82 + Math.random() * 0.3).toFixed(2);
+    var off = Math.round((Math.random() - 0.5) * 36);
+    var tilt = key === 'tulip' ? -8 + Math.round(Math.random() * 16) : 0;
+
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'fl');
+    svg.setAttribute('width', 120);
+    svg.setAttribute('height', H);
+    svg.setAttribute('viewBox', '0 0 120 ' + H);
+    svg.style.left = (x - 60) + 'px';
+    svg.style.top = (y - 60) + 'px';
+    svg.style.setProperty('--w', (Math.random() * 0.5).toFixed(2) + 's');
+    svg.innerHTML =
+      '<path class="stem" pathLength="1" d="M60 ' + H + ' Q ' + (60 + off) + ' ' + ((H + 60) / 2) + ' 60 60"/>' +
+      '<g class="head"><g transform="translate(60 60) rotate(' + tilt + ') scale(' + sc + ')">' +
+      headMarkup(key, color, center) + '</g></g>';
+
+    svg.querySelector('.head').addEventListener('pointerdown', function (e) {
+      e.stopPropagation();
+      svg.classList.remove('sway'); void svg.getBoundingClientRect(); svg.classList.add('sway');
+    });
+    svg.addEventListener('animationend', function (e) {
+      if (e.animationName === 'sway') svg.classList.remove('sway');
+    });
+
+    stage.insertBefore(svg, stage.querySelector('.ground'));
+    var all = stage.querySelectorAll('.fl');
+    if (all.length > MAX) all[0].remove();
+
+    planted++;
+    if (planted === 1) hint.textContent = 'Sigue plantando. Toca una flor para moverla un poquito.';
+    if (planted === 5) { hint.textContent = ''; msg.classList.add('show'); }
+  }
+
+  stage.addEventListener('pointerdown', function (e) {
+    var r = stage.getBoundingClientRect();
+    plant(e.clientX - r.left, e.clientY - r.top, current);
+  });
+
+  document.getElementById('wind').addEventListener('click', function () {
+    stage.classList.remove('wind'); void stage.offsetWidth; stage.classList.add('wind');
+    setTimeout(function () { stage.classList.remove('wind'); }, 2400);
+  });
+
+  document.getElementById('clear').addEventListener('click', function () {
+    stage.querySelectorAll('.fl').forEach(function (f) { f.remove(); });
+    planted = 0; msg.classList.remove('show');
+    hint.textContent = 'Toca el cielo para plantar una flor donde quieras.';
+  });
+
+  // una primera flor ya plantada, para que se entienda la idea
+  setTimeout(function () { plant(stage.clientWidth / 2, stage.clientHeight * 0.38, 'daisy'); planted = 0; }, 300);
+</script>
+</body>
+</html>
